@@ -1,0 +1,13 @@
+[package]
+
+name = "rusty_knight"
+version = "1.0.0"
+authors = [ "Kyro <kyro@koddi.com>" ]
+
+[[bin]]
+
+name = "rusty_knight"
+
+[dependencies]
+rustc-serialize = "*"
+getopts = "*"
