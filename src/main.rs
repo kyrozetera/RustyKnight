@@ -65,6 +65,7 @@ fn main() {
     let pos: Coord = Coord { x: 0, y: 0 };
 
     println!("Starting journey at ({},{})", pos.x, pos.y);
+    println!("Board size: {} X {}", opts.size.x, opts.size.y);
 
     let mut path: Vec<Coord> = Vec::new();
     path.upush(opts.start.clone());
@@ -97,6 +98,10 @@ fn find_path(
         }
 
         if fails_checkpoint(&new_pos, path.clone(), &checkpoints) {
+            continue;
+        }
+
+        if creates_block(&delta, &new_pos, size, path.clone()) {
             continue;
         }
 
@@ -177,6 +182,41 @@ fn fails_checkpoint(pos: &Coord, path: Vec<Coord>, checkpoints: &HashMap<i32, Co
     }
 
     return false;
+}
+
+/// Perform a look-ahead to see if this move will block any other positions off
+/// Saves us having to do needless iterations
+fn creates_block(delta: &[Coord], pos: &Coord, size: &Coord, mut path: Vec<Coord>) -> bool {
+    if size.x * size.y <= path.len() as i16 + 2 {
+        return false;
+    }
+
+    path.push(pos.clone());
+
+    for d in delta {
+        let new_pos = Coord { x: pos.x + d.x, y: pos.y + d.y };
+        if is_reachable(&new_pos, &size, path.clone()) {
+            let mut new_path = path.clone();
+            new_path.push(new_pos.clone());
+
+            if is_blocked(delta, &new_pos, &size, new_path.clone()) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+fn is_blocked(delta: &[Coord], pos: &Coord, size: &Coord, path: Vec<Coord>) -> bool {
+    for d in delta {
+        let peripheral = Coord { x: pos.x + d.x, y: pos.y + d.y };
+        if is_reachable(&peripheral, &size, path.clone()) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 fn parse_args() -> Opts {
